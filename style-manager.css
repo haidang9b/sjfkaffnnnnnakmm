@@ -1,0 +1,70 @@
+.title-first{
+    display: flex;
+    border-bottom: 1px solid;
+}
+
+.btn-user{
+    background-image: url(
+    './images/person.png');
+    background-size: cover;
+    width: 45px;
+    height: 45px;
+    border: none;
+    margin-left: 80%;
+    border-radius: 50%;
+}
+.btn-user:hover{
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+}
+
+a{
+    color: red;
+}
+
+#name-class-manager{
+    font-size: 24px;
+}
+
+#manager-account{
+    width: 300px;
+    margin-left: 80%;
+}
+
+#header-account{
+    margin-left: 32%;
+}
+
+#name-account, #email-account{
+    width: 100%;
+    text-align: center;
+}
+
+#img-account{
+    border: 1px solid;
+    margin-left: 30%;
+    width: 100px;
+    height: 100px;
+}
+
+.btn-default{
+    border: 1px solid;
+    margin: auto;
+}
+
+#manager{
+    margin-left: 22%;
+}
+
+.container{
+    margin-top: 30px;
+}
+
+h3{
+    color: blue;
+}
+
+.img-people{
+    width: 30px;
+    height: 30px;
+}
+
