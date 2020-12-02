@@ -1,0 +1,49 @@
+.row{
+    width: 100%;
+}
+
+.work-title{
+    display: flex;
+}
+
+img{
+    width: 45px;
+    height: 45px;
+}
+
+.name-work{
+    width: 100%;
+    margin-left: 10px;
+}
+
+.time-teacher{
+    display: flex;
+}
+
+#deadline{
+    margin-left: 70%;
+}
+
+#send{
+    margin-left: 50%;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+.desc{
+    border-top: 1px solid;
+    margin-bottom: 10px;
+    border-bottom: 1px solid;
+}
+
+.row-discuss{
+    display: flex;
+}
+
+.comment{
+    margin-left: 10px;
+}
+
+td{
+    display: flex;
+}

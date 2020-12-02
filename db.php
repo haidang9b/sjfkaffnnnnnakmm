@@ -332,4 +332,451 @@
     // function join_class_by_code($username, $key){
         
     // }
+
+
+    //remove row class in sql
+    function remove_class_by_key($key_delete){
+        $sql = "DELETE FROM `lophoc` WHERE `codelop`='$key_delete'";
+        $conn = openMySQLConnection();
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    //check role admin hoặc gv, nếu hợp lê thì true, else thì false
+    function check_role($username,$keylop){
+        $codeRole = 99;
+        $sql = "SELECT role FROM account_lophoc INNER JOIN lophoc on account_lophoc.idLop = lophoc.idLop WHERE account_lophoc.username ='$username' AND lophoc.codelop = '$keylop'";
+        $conn = openMySQLConnection();
+        $result = $conn->query($sql);
+        if(!$result){
+            trigger_error('Invalid query' . $conn->error);
+        }
+        
+        if($result->num_rows>0){
+            $row = $result->fetch_assoc();
+            $codeRole = $row['role'];
+        }
+        if($codeRole<2){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    function update_class($key,$ten,$mota, $phan, $phong, $chude ){
+        $sql = "UPDATE `lophoc` SET `tenLop`='$ten',`motaLop`='$mota',`phanHoc`='$phan',`phongHoc`='$phong',`chude`='$chude' WHERE `codelop`='$key'";
+        $conn = openMySQLConnection();
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    function create_class($ten,$mota, $phan, $phong, $chude,$username){
+        $seed = str_split('abcdefghijklmnopqrstuvwxyz'.'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.'0123456789');
+        shuffle($seed);
+        $rand = '';
+        foreach (array_rand($seed, 15) as $k) $rand .= $seed[$k];
+        //genaration code;
+        $sql = "INSERT INTO `lophoc`(`idLop`, `tenLop`, `motaLop`, `phanHoc`, `phongHoc`, `chude`, `codelop`) VALUES (null, '$ten','$mota','$phan','$phong','$chude','$rand')";
+        $conn = openMySQLConnection();
+        if($conn->query($sql)){
+            if($username!='admin'){
+                $sql_new = "INSERT INTO `account_lophoc`(`idaccount_lophoc`, `idLop`, `username`, `role`) VALUES (null,(SELECT lophoc.idLop FROM lophoc WHERE lophoc.codelop='$rand'),'$username',1), (null,(SELECT lophoc.idLop FROM lophoc WHERE lophoc.codelop='$rand'),'admin',1) ";
+            }
+            else{
+                $sql_new = "INSERT INTO `account_lophoc`(`idaccount_lophoc`, `idLop`, `username`, `role`) VALUES (null,(SELECT lophoc.idLop FROM lophoc WHERE lophoc.codelop='$rand'),'$username',1)";
+            }
+            if($conn->query($sql_new)){
+                return true;
+            }
+            else{
+                $sql_del = "DELETE FROM `lophoc` WHERE `codelop` = '$rand'";
+                $conn->query($sql_del);
+                return false;
+            }
+        }
+        else{
+            return false;
+        }
+    }
+    
+
+    function check_permission($code, $username){
+        $conn = openMySQLConnection();
+        $sql = "SELECT COUNT(*) FROM lophoc INNER JOIN account_lophoc On lophoc.idLop = account_lophoc.idLop WHERE account_lophoc.username ='$username' AND lophoc.codelop = '$code'";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_count = $row['0'];
+            if($row_count==0){
+                return false;
+            }
+            else{
+                return true;
+            }
+        }
+    }
+
+    function reomve_person_by_username($username,$code){
+        $conn = openMySQLConnection();
+        $sql = "DELETE FROM `account_lophoc` WHERE username='$username' AND idLop=(SELECT idLop FROM lophoc WHERE lophoc.codelop='$code')";
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+        
+    }
+
+    function get_name_class_by_code($code){
+        $conn = openMySQLConnection();
+        $sql = "SELECT concat(`tenLop`,' - ',`motaLop`)as'nameclass' FROM lophoc WHERE codelop='$code'";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $name_class = $row['0'];
+            return $name_class;
+        }
+        else{
+            return '';
+        }
+    }
+
+    function update_role_user_by_code($code,$username,$role){
+        $conn = openMySQLConnection();
+        $sql = "UPDATE `account_lophoc` SET role=$role WHERE `username`='$username' AND `idLop`=(SELECT idLop FROM lophoc WHERE lophoc.codelop='$code')";
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    
+    function add_user_to_class_by_email($code,$email,$role){
+        $conn = openMySQLConnection();
+        $sql = "INSERT INTO `account_lophoc`(`idaccount_lophoc`, `idLop`, `username`, `role`) VALUES (null,(SELECT idLop FROM lophoc WHERE lophoc.codelop='$code'),(SELECT username FROM account WHERE account.email = '$email'),$role)";
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+
+    function check_user_in_class_by_email($email,$code){
+        $conn = openMySQLConnection();
+        $sql = "SELECT COUNT(*) FROM account_lophoc WHERE account_lophoc.idLop = (SELECT idLop FROM lophoc WHERE lophoc.codelop='$code') AND username = (SELECT username FROM account WHERE account.email='$email')";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_count = $row['0'];
+            if($row_count==0){
+                return false;
+            }
+            else{
+                return true;
+            }
+        }
+    }
+
+    function have_class_by_code($code){
+        $sql = "SELECT COUNT(*) FROM lophoc WHERE lophoc.codelop = '$code'";
+        $conn = openMySQLConnection();
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_count = $row['0'];
+            if($row_count==0){
+                return false;
+            }
+            else{
+                return true;
+            }
+        }
+    }
+
+    function sendMailInvited($email,$code,$nameGV){
+        require 'vendor/autoload.php';
+
+
+
+        // Instantiation and passing `true` enables exceptions
+        $mail = new PHPMailer(true);
+
+        try {
+            //Server settings
+            $mail->CharSet = 'UTF-8';
+            //$mail->SMTPDebug = SMTP::DEBUG_SERVER;                      // Enable verbose debug output
+            $mail->isSMTP();                                            // Send using SMTP
+            $mail->Host       = 'smtp.gmail.com';                    // Set the SMTP server to send through
+            $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+            $mail->Username   = 'drom97977@gmail.com';                     // SMTP username
+            $mail->Password   = 'zxhpggpufhxsiblc';                               // SMTP password
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+            $mail->Port       = 587;                                    // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+            //Recipients
+            $mail->setFrom('drom97977@gmail.com', 'Admin TDTU Classroom');
+            $mail->addAddress($email, 'Người nhận');     // Add a recipient
+            // $mail->addAddress('ellen@example.com');               // Name is optional
+            // $mail->addReplyTo('info@example.com', 'Information');
+            // $mail->addCC('cc@example.com');
+            // $mail->addBCC('bcc@example.com');
+
+            // Attachments
+            // $mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
+            // $mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
+
+            // Content
+            $mail->isHTML(true);                                  // Set email format to HTML
+            $mail->Subject = $nameGV.' mời bạn làm thành viên của lớp '.get_name_class_by_code($code);
+            $mail->Body    = "Vui lòng click  <a href='http://localhost/invited.php?email=$email&code=$code'> vào đây </a> để vào nhóm này";
+            // $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    function get_mail_by_username($username){
+        $conn = openMySQLConnection();
+        $sql = "SELECT `email` FROM `account` WHERE username='$username'";
+        $row_email = "";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_email = $row['0'];
+        }
+        else{
+            $row_email = "";
+        }
+        return $row_email;
+    }
+
+    ///status = 0 là được mời, else là tự tham gia
+    function insert_pendding_invite($username,$code,$role,$status){
+        $conn = openMySQLConnection();
+        $sql = "INSERT INTO `pending_invited`(`idinvite`, `username`, `codelophoc`, `role`, `status`) VALUES (null,(select username from account where email ='$username'),'$code','$role',$status)";
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    function get_name_by_username($username){
+        $sql = "SELECT concat( `firstname`,' ' ,`lastname`) FROM `account` WHERE username='$username'";
+        $conn = openMySQLConnection();
+        $row_name = "";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_name = $row['0'];
+        }
+        else{
+            $row_name = "";
+        }
+        return $row_name;
+
+    }
+    function have_in_pending($username,$code){
+        $conn = openMySQLConnection();
+        $sql = "SELECT COUNT(*) FROM `pending_invited` WHERE username='$username' and codelophoc='$code'";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_count = $row['0'];
+            if($row_count==0){
+                closeMySQLConnection($conn);
+                return false;
+            }
+            else{
+                closeMySQLConnection($conn);
+                return true;
+            }
+        }
+        closeMySQLConnection($conn);
+    }
+
+    function very_inpending_pending($username,$code){
+        $conn = openMySQLConnection();
+        $sql = "SELECT COUNT(*) FROM `pending_invited` WHERE username='$username' and codelophoc='$code' and status=0";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_count = $row['0'];
+            if($row_count==0){
+                return false;
+            }
+            else{
+                $sql_new = "DELETE FROM `pending_invited` WHERE `username`='$username' and `codelophoc`='$code'";
+                if($conn->query($sql_new)){
+                    if(add_user_to_class_by_email($code,$username,get_role_pending($username,$code))){
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+                else{
+                    return false;
+                }
+                
+            }
+        }
+    }
+
+    function get_role_pending($username,$code){
+        $conn = openMySQLConnection();
+        $sql = "SELECT role FROM `pending_invited` WHERE username='$username' and codelophoc='$code'";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_role = $row['0'];
+            if($row['0']!=null){
+                return $row_role;
+            }
+            else{
+                return 999;
+            }
+        }
+        else{
+            return 999;
+        }
+    }
+
+    function get_room_by_code($code){
+        $sql = "SELECT `phongHoc` FROM `lophoc` WHERE codelop = '$code'";
+        $conn = openMySQLConnection();
+        $row_class = "";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_class = $row['0'];
+        }
+        else{
+            $row_class = "";
+        }
+        return $row_class;
+    }
+
+    function get_name_register_class($code){
+        $conn = openMySQLConnection();
+        $sql = "SELECT account_lophoc.idaccount_lophoc,concat(account.firstname,' ', account.lastname) FROM account INNER JOIN account_lophoc ON account_lophoc.username = account.username INNER JOIN lophoc ON lophoc.idLop = account_lophoc.idLop WHERE lophoc.codelop='$code' ORDER BY account_lophoc.idaccount_lophoc ASC";
+        $row_name_teach = "";
+        if($result = mysqli_query($conn,$sql)){
+            $row = mysqli_fetch_row($result);
+            $row_name_teach = $row['1'];
+        }
+        else{
+            $row_name_teach = "";
+        }
+        return $row_name_teach;
+
+
+    }
+
+    function insert_baidang($noidung, $code,$username, $file){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $current_date_time = date("d/m/Y H:i");
+        
+        $conn = openMySQLConnection();
+        if($file==""){
+            $path_file="";
+        }
+        else{
+            $path_file = "uploads/$code/$file";
+        }
+        
+        $sql = "INSERT INTO `baidang`(`idbaidang`, `idlophoc`, `username`, `noidung`, `fileupload`, `thoigiandang`) VALUES (null,(SELECT idLop FROM lophoc WHERE lophoc.codelop='$code'),'$username','$noidung','$path_file','$current_date_time')";
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    function delete_baidang_by_id($idbaidang){
+        $sql = "DELETE FROM `baidang` WHERE `idbaidang`=$idbaidang";
+        $conn = openMySQLConnection();
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    function update_baidang_by_id($idbaidang, $noidung,$file,$code,$username){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $current_date_time = date("d/m/Y H:i");
+        
+        $conn = openMySQLConnection();
+        if($file==""){
+            $path_file="";
+            $sql = "UPDATE `baidang` SET `username`='$username',`noidung`='$noidung',`thoigiandang`='$current_date_time' WHERE idbaidang=$idbaidang";
+            if($conn->query($sql)){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        else{
+            $path_file = "teptin/$code/$file";
+            $sql = "UPDATE `baidang` SET `username`='$username',`noidung`='$noidung',`fileupload`='$path_file',`thoigiandang`='$current_date_time' WHERE idbaidang=$idbaidang";
+            if($conn->query($sql)){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        
+        
+    }
+
+    function insert_binhluan($idbaidang,$noidung,$username){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $current_date_time = date("d/m/Y H:i");
+        $conn = openMySQLConnection();
+        $sql = "INSERT INTO `binhluan`(`idbl`, `idbaidang`, `noidungbl`, `usernamebl`, `thoigianbl`) VALUES (null,$idbaidang,'$noidung','$username','$current_date_time')";
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    
+
+    function delete_binhluan($idbinhluan){
+        $sql = "DELETE FROM `binhluan` WHERE `idbl`='$idbinhluan'";
+        $conn = openMySQLConnection();
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    function insert_baitap($username,$code,$tieude,$noidung,$tghan){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $current_date_time = date("d/m/Y H:i");
+        $sql = "INSERT INTO `baitap`(`idbaitap`, `usernamepost`, `idlophoc`, `tieude`, `noidung`, `thoigiandang`, `thoigianhethan`) VALUES (null,'$username',(SELECT idLop FROM lophoc WHERE lophoc.codelop='$code'),'$tieude','$noidung','$current_date_time','$tghan')";
+        $conn = openMySQLConnection();
+        if($conn->query($sql)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
 ?>

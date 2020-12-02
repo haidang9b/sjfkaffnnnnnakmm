@@ -1,0 +1,7 @@
+.subject{
+    font-size: 25px;
+    color: aliceblue;
+}
+.subject:hover{
+    color: darkcyan;
+}

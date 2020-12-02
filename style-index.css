@@ -1,0 +1,39 @@
+.name-title{
+    font-size: 40px;
+}
+
+#t{
+    color: blue;
+}
+#d {
+    color: red;
+}
+
+.card{
+    height: 365px;
+    margin-bottom: 30px;
+}
+
+.card:hover{
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+}
+
+.card-img-top{
+    height: 150px;
+}
+
+.card-title{
+    font-size: 24px;
+    color: red;
+}
+.card-title:hover{
+    color: red;
+}
+
+.container{
+    margin-top: 30px;
+}
+
+
+
+
